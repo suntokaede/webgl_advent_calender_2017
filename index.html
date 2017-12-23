@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="ja">
+    <head>
+        <meta charset="utf-8" />
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                overflow: hidden;
+            }
+            .loading {
+                width: 100%;
+                height: 100%;
+                background-color: black;
+                position: absolute;
+                top: 0;
+                left: 0;
+                text-align: center;
+                color: white;
+                font-size: 64px;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loading" id="loading">
+            Loading...
+        </div>
+        <script src="ZipLoader.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.js"></script>
+        <script src="https://threejs.org/examples/js/controls/OrbitControls.js"></script>
+        <script src="FireShader.js"></script>                
+        <script src="Fire.js"></script>
+        <script>
+            ZipLoader.use( { 'THREE': THREE } );
+
+            const scene = new THREE.Scene();
+            const renderer = new THREE.WebGLRenderer({ antialias: true });
+            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(-10, 7, 20);
+            camera.rotation.set(-0.31, -0.32, -0.1);
+
+            const control = new THREE.OrbitControls(camera);
+
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setClearColor(0xcccccc);
+
+            document.body.appendChild(renderer.domElement);
+
+            let fire;
+
+            const loader = new ZipLoader('Christmas.zip');
+            loader.load();
+
+            loader.on('load', e => {
+                const tile_geo = new THREE.PlaneGeometry(32, 16);
+                const tile_mat = new THREE.MeshStandardMaterial({
+                    map: loadTextureWithSetRepeat(loader.extractAsBlobUrl('TilesOnyxOpaloColoredMixed001_COL_1K.jpg', 'image/jpg'), 4, 2),
+                    roughnessMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('TilesOnyxOpaloColoredMixed001_GLOSS_1K.jpg', 'image/jpg'), 4, 2),
+                    normalMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('TilesOnyxOpaloColoredMixed001_NRM_1K.jpg', 'image/jpg'), 4, 2),
+                    displacementMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('TilesOnyxOpaloColoredMixed001_DISP_1K.jpg', 'image/jpg'), 4, 2),
+                    metalness: 0
+                });
+
+                const tile = new THREE.Mesh(tile_geo, tile_mat);
+
+                tile.position.set(0, 7, -10);
+
+                scene.add(tile);
+
+                const tile2 = tile.clone();
+
+                tile2.position.set(-16, 7 , 6.5);
+                tile2.rotation.set(0, Math.PI / 2, 0);
+
+                scene.add(tile2);
+
+                const tile3 = tile.clone();
+
+                tile3.position.set(16, 7, 6.5);
+                tile3.rotation.set(0, -Math.PI / 2, 0);
+
+                scene.add(tile3);
+
+                const floor_geo = new THREE.PlaneGeometry(32, 32);
+                const floor_mat = new THREE.MeshPhysicalMaterial({
+                    map: loadTextureWithSetRepeat(loader.extractAsBlobUrl('WoodPlanks32_COL_VAR1_1K.jpg', 'image/jpg'), 8, 8),
+                    roughnessMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('WoodPlanks32_GLOSS_1K.jpg', 'image/jpg'), 8, 8),
+                    normalMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('WoodPlanks32_NRM_1K.jpg', 'image/jpg'), 8, 8),
+                    displacementMap: loadTextureWithSetRepeat(loader.extractAsBlobUrl('WoodPlanks32_DISP_1K.jpg', 'image/jpg'), 8, 8),
+                    metalness: 0,
+                    clearCoat: 1
+                });
+
+                const floor = new THREE.Mesh(floor_geo, floor_mat);
+
+                floor.position.set(0, 0, 6);
+                floor.rotation.set(-Math.PI / 2, 0, 0);
+
+                scene.add(floor);
+
+                const ceiling_geo = new THREE.PlaneGeometry(32, 32);
+                const ceiling_mat = new THREE.MeshStandardMaterial({ 
+                    metalness: 0, 
+                    roughness: 0,
+                    map: loadTextureWithSetRepeat(loader.extractAsBlobUrl('GraphicDesignWallpaperContemporary40_VAR1_512kb.jpg', 'image/jpeg'), 8, 8)
+                });
+
+                const ceiling = new THREE.Mesh(ceiling_geo, ceiling_mat);
+                ceiling.position.set(0, 15, 6);
+                ceiling.rotation.set(Math.PI / 2, 0, 0);
+
+                scene.add(ceiling);
+
+                const result = loader.loadThreeJSON('wreath.json');
+
+                const material = new THREE.MeshStandardMaterial({ color: 0x316039, roughness: 0, metalness: 0 });
+
+                const wreath = new THREE.Mesh(result.geometry, material);
+
+                wreath.position.set(-2, 6, -2);
+
+                scene.add(wreath);
+
+                const wreath2 = wreath.clone();
+
+                wreath2.position.set(8, 6, -2);
+
+                scene.add(wreath2);
+
+                const wreath3 = wreath.clone();
+
+                wreath3.position.set(18, 6, -2);
+
+                scene.add(wreath3);
+
+                const tree_json = loader.loadThreeJSON('christmasTree.json');
+
+                const tree_material = new THREE.MeshStandardMaterial({ color: 0x999999, roughness: 1, metalness: 0 });
+
+                const tree = new THREE.Mesh(tree_json.geometry, tree_material);
+
+                tree.scale.set(7, 7, 7);
+                tree.position.set(10, 0, -5);
+
+                scene.add(tree);
+
+                const ball_geo = new THREE.SphereGeometry(0.25, 32, 32);
+                const ball_mat_blue = new THREE.MeshStandardMaterial({ color: 0x9999ff, metalness: 0.6, roughness: 0 });
+                const ball_mat_red = new THREE.MeshStandardMaterial({ color: 0xff9999, metalness: 0.6, roughness: 0 });
+
+                const ball = new THREE.Mesh(ball_geo, ball_mat_blue);
+
+                ball.position.set(10, 10, -5);
+
+                scene.add(ball);
+
+                const ball2 = ball.clone();
+
+                ball2.position.set(11, 12, -6);
+
+                scene.add(ball2);
+
+                const ball3 = ball.clone();
+
+                ball3.position.set(13, 8, -5);
+
+                scene.add(ball3);
+
+                const ball4 = ball.clone();
+
+                ball4.position.set(8, 6, -5);
+
+                scene.add(ball4);
+
+                const ball5 = ball.clone();
+
+                ball5.position.set(12, 3, -4);
+
+                scene.add(ball5);
+
+                const ball6 = new THREE.Mesh(ball_geo, ball_mat_red);
+                
+                ball6.position.set(10, 12, -5);
+
+                scene.add(ball6);
+
+                const ball7 = ball6.clone();
+
+                ball7.position.set(10, 11, -6);
+
+                scene.add(ball7);
+
+                const ball8 = ball6.clone();
+
+                ball8.position.set(9, 7, -6);
+
+                scene.add(ball8);
+
+                const ball9 = ball6.clone();
+
+                ball9.position.set(11, 5, -4);
+
+                scene.add(ball9);
+
+                const ball10 = ball6.clone();
+
+                ball10.position.set(10, 3, -3);
+
+                scene.add(ball10);
+
+                const ball11 = ball6.clone();
+
+                ball11.position.set(12, 4, -7);
+
+                scene.add(ball11);
+
+                const ball12 = ball.clone();
+
+                ball12.position.set(9, 6, -4);
+
+                scene.add(ball12);
+
+                const ball13 = ball6.clone();
+
+                ball13.position.set(9, 5, -4);
+
+                scene.add(ball13);
+
+                const ball14 = ball.clone();
+
+                ball14.position.set(9, 3, -4);
+
+                scene.add(ball14);
+
+                const ball15 = ball6.clone();
+
+                ball15.position.set(9, 8, -4);
+
+                scene.add(ball15);
+
+                const ball16 = ball.clone();
+
+                ball16.position.set(10, 7, -4);
+
+                scene.add(ball16);
+
+                const couch_json = loader.loadThreeJSON('couch_christmas.json');
+
+                for(let i = 0, l = couch_json.materials.length; i < l; i++) {
+                    couch_json.materials[i].metalness = 0;
+                    couch_json.materials[i].shading = THREE.SmoothShading;
+                }
+
+                const couch = new THREE.Mesh(couch_json.geometry, new THREE.MultiMaterial(couch_json.materials));
+
+                couch.position.set(-10, 1.6, -5);
+
+                couch.scale.set(1.25, 1.25, 1.25);
+
+                scene.add(couch);
+                
+                const clock_json = loader.loadThreeJSON('clock.json');
+
+                for(let i = 0, l = clock_json.materials.length; i < l; i++) {
+                    clock_json.materials[i].metalness = 0;
+                    clock_json.materials[i].shading = THREE.SmoothShading;
+                }
+
+                clock_json.materials[0].color = new THREE.Color(0x9BC6E7);
+                // clock_json.materials[0].metalness = 1;
+
+                clock_json.materials[3].color = new THREE.Color(0x2AE729);
+                // clock_json.materials[3].metalness = 1;
+
+                const clock = new THREE.Mesh(clock_json.geometry, new THREE.MultiMaterial(clock_json.materials));
+
+                clock.scale.set(0.5, 0.5, 0.5);
+                clock.rotation.set(0, -Math.PI / 2, 0);
+                clock.position.set(14.5, 8, -5);
+
+                scene.add(clock);
+
+                const stove_json = loader.loadThreeJSON('stove.json');
+
+                stove_json.materials[0].metalness = 0;
+
+                const stove = new THREE.Mesh(stove_json.geometry, stove_json.materials[0]);
+
+                stove.position.set(14.5, 0.4, 4);
+                stove.rotation.set(0, -Math.PI / 2, 0);
+
+                scene.add(stove);
+
+                const coal_json = loader.loadThreeJSON('charcoal.json');
+
+                const coal = new THREE.Mesh(coal_json.geometry, coal_json.materials[0]);
+
+                coal.position.set(14, 1, 4.7);
+
+                coal.scale.set(1.3, 1.3, 1.3);
+
+                scene.add(coal);
+
+                fire = new THREE.Fire(new THREE.TextureLoader().load(loader.extractAsBlobUrl('Fire.png', 'image/png')));
+
+                fire.position.set(14.5, 1.5, 4);
+
+                fire.scale.set(1.5, 1.5, 2);
+
+                scene.add(fire);
+
+                const fire_light = new THREE.PointLight(0xff9999, 0.1);
+
+                fire_light.position.set(14.5, 1.5, 4);
+
+                scene.add(fire_light);
+                
+                const hemi = new THREE.HemisphereLight(0xffffff, 0x000000);
+                hemi.position.set(10, 20, 30);
+                scene.add(hemi);
+
+                const direc = new THREE.PointLight(0xffffff, 0.75);
+                direc.position.set(10, 14.5, -2);
+                scene.add(direc);
+
+                document.body.removeChild(document.getElementById('loading'));
+                
+                const iframe = document.createElement('iframe');
+                iframe.frameBorder = 0;
+                iframe.gesture = 'media';
+                iframe.allow = 'encrypted-media';
+                iframe.style.display = 'none';
+                iframe.src = 'https://www.youtube.com/embed/0u5UvnKlCTA?&autoplay=1';
+
+                document.body.appendChild(iframe);
+
+                render();
+            });
+
+            const clock = new THREE.Clock();
+
+            function render() {
+                requestAnimationFrame(render);
+                control.update();
+                fire.update(clock.getElapsedTime());
+                renderer.render(scene, camera);
+            } 
+
+            function loadTextureWithSetRepeat(filename, repeatX, repeatY) {
+                const loader = new THREE.TextureLoader().load(filename);
+                
+                loader.wrapS = THREE.RepeatWrapping;
+                loader.wrapT = THREE.RepeatWrapping;
+                loader.repeat.set(repeatX, repeatY);
+
+                return loader
+            }
+
+        </script>
+    </body>
+</html>
