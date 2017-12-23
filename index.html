@@ -15,15 +15,30 @@
                 position: absolute;
                 top: 0;
                 left: 0;
-                text-align: center;
-                color: white;
-                font-size: 64px;
             }
+            .loading > div {
+                position: absolute;
+                margin: auto;
+                top: 0;
+                left: 0;
+                bottom: 0;
+                right: 0;
+                width: 200px;
+                height: 40px;
+                color: white;
+                font-size: 32px;
+                animation: blink 1.5s ease-in-out infinite alternate;
+            }
+            @keyframes blink{
+                0% {opacity:0;}
+                100% {opacity:1;}
+            }
+
         </style>
     </head>
     <body>
         <div class="loading" id="loading">
-            Loading...
+            <div>Loading...</span>
         </div>
         <script src="ZipLoader.js"></script>
         <script src="three.min.js"></script>
@@ -326,15 +341,6 @@
 
                 document.body.removeChild(document.getElementById('loading'));
                 
-                const iframe = document.createElement('iframe');
-                iframe.frameBorder = 0;
-                iframe.gesture = 'media';
-                iframe.allow = 'encrypted-media';
-                iframe.style.display = 'none';
-                iframe.src = 'https://www.youtube.com/embed/0u5UvnKlCTA?&autoplay=1';
-
-                document.body.appendChild(iframe);
-
                 render();
             });
 
