@@ -24,7 +24,7 @@
                 bottom: 0;
                 right: 0;
                 width: 200px;
-                height: 40px;
+                height: 32px;
                 color: white;
                 font-size: 32px;
                 animation: blink 1.5s ease-in-out infinite alternate;
@@ -340,6 +340,12 @@
                 scene.add(direc);
 
                 document.body.removeChild(document.getElementById('loading'));
+
+                const iframe = document.createElement('iframe');
+                iframe.style.display = 'none';
+                iframe.src = 'https://www.youtube.com/embed/T-4UC68BDFc&autoplay=1';
+
+                document.body.appendChild(iframe);
                 
                 render();
             });
